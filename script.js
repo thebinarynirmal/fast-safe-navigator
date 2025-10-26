@@ -209,10 +209,17 @@ function draw(){
 
   // Blocks
   for (const id of blocks){
-    const [r, c] = rcOf(id);
-    const [x, y, w, h] = cellRect(r, c);
-    ctx.fillStyle = '#ef4444'; ctx.globalAlpha = 0.8; ctx.fillRect(x, y, w, h); ctx.globalAlpha = 1;
-  }
+  const [r, c] = rcOf(id);
+  const [x, y, w, h] = cellRect(r, c);
+  ctx.fillStyle = '#ef4444';
+  ctx.globalAlpha = 0.8;
+  ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 1;
+  // White border
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+}
 
   // Path
   if (lastPath && lastPath.length){
@@ -231,13 +238,23 @@ function draw(){
 
   // Endpoints
   if (src !== null){
-    const [r, c] = rcOf(src); const [x, y, w, h] = cellRect(r, c);
-    ctx.fillStyle = '#3b82f6'; ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-  }
+  const [r, c] = rcOf(src);
+  const [x, y, w, h] = cellRect(r, c);
+  ctx.fillStyle = '#3b82f6';
+  ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+}
   if (dst !== null){
-    const [r, c] = rcOf(dst); const [x, y, w, h] = cellRect(r, c);
-    ctx.fillStyle = '#f59e0b'; ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-  }
+  const [r, c] = rcOf(dst);
+  const [x, y, w, h] = cellRect(r, c);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+}
 }
 
 function setLabels(){
