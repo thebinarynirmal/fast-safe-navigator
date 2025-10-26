@@ -134,7 +134,7 @@ function dijkstra(adj, src, dst){
     if (u === dst) break;
 
     for (const e of adj.get(u)){
-      const w = edgeCost(e, alpha,);
+      const w = edgeCost(e, alpha);
       const nd = du + w;
       if (nd < dist[e.to]){
         dist[e.to] = nd;
@@ -307,6 +307,5 @@ btnClearSel.addEventListener('click', () => { src = null; dst = null; setLabels(
 
 // Init
 alphaOut.textContent = alpha.toFixed(1);
-turnOut.textContent = String(turnPenalty);
 setLabels();
 draw();
