@@ -23,15 +23,12 @@ let src = null, dst = null;
 let blocks = new Set();
 let nightMode = false;
 let alpha = 1.0;
-let turnPenalty = 8.0;
 let lastPath = [];
 let lastExpanded = 0;
 
 // UI refs
 const alphaEl = document.getElementById('alpha');
 const alphaOut = document.getElementById('alphaOut');
-const turnEl = document.getElementById('turn');
-const turnOut = document.getElementById('turnOut');
 const nightEl = document.getElementById('night');
 const statDist = document.getElementById('statDist');
 const statRisk = document.getElementById('statRisk');
@@ -115,8 +112,8 @@ class MinPQ {
 }
 
 // --- Cost function
-function edgeCost(e, alpha, addTurn){
-  return e.dist * (1 + alpha * e.risk) + (addTurn ? turnPenalty : 0);
+function edgeCost(e, alpha){
+  return e.dist * (1 + alpha * e.risk);
 }
 
 // --- Dijkstra
@@ -124,7 +121,6 @@ function dijkstra(adj, src, dst){
   const N = rows * cols, INF = 1e18;
   const dist = new Array(N).fill(INF);
   const prev = new Array(N).fill(-1);
-  const prevDir = new Array(N).fill(null);
   const pq = new MinPQ();
 
   dist[src] = 0;
@@ -138,14 +134,11 @@ function dijkstra(adj, src, dst){
     if (u === dst) break;
 
     for (const e of adj.get(u)){
-      const last = prevDir[u];
-      const isTurn = (last !== null) ? Math.abs(e.dir - last) > 30 : false;
-      const w = edgeCost(e, alpha, isTurn);
+      const w = edgeCost(e, alpha,);
       const nd = du + w;
       if (nd < dist[e.to]){
         dist[e.to] = nd;
         prev[e.to] = u;
-        prevDir[e.to] = e.dir;
         pq.push({ key: nd, node: e.to });
       }
     }
@@ -277,7 +270,6 @@ function run(){
 
 // --- Events
 alphaEl.addEventListener('input', e => { alpha = parseFloat(e.target.value); alphaOut.textContent = alpha.toFixed(1); run(); });
-turnEl.addEventListener('input', e => { turnPenalty = parseFloat(e.target.value); turnOut.textContent = String(turnPenalty); run(); });
 nightEl.addEventListener('change', e => { nightMode = e.target.checked; run(); });
 
 // Canvas clicks
