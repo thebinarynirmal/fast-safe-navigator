@@ -1,70 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fast‑Safe City Navigator</title>
-<style>
-  :root{
-    --bg:#0f172a; /* slate-900 */
-    --panel:#111827; /* gray-900 */
-    --muted:#94a3b8; /* slate-400 */
-    --text:#e5e7eb; /* gray-200 */
-    --brand:#2563eb; /* blue-600 */
-    --ok:#22c55e; /* green-500 */
-    --warn:#f59e0b; /* amber-500 */
-    --danger:#ef4444; /* red-500 */
-  }
-  *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
-  header{padding:18px 20px; border-bottom:1px solid #1f2937; display:flex; align-items:center; gap:14px}
-  header h1{margin:0; font-size:20px; letter-spacing:.3px}
-  header .pill{background:#111827; border:1px solid #1f2937; padding:4px 10px; border-radius:999px; color:var(--muted); font-size:12px}
-  .wrap{display:grid; grid-template-columns:1fr 320px; gap:16px; padding:16px}
-  @media (max-width: 980px){.wrap{grid-template-columns:1fr}}
-  .board{background:#0b1220; border:1px solid #1f2937; border-radius:14px; padding:8px; display:flex; flex-direction:column; min-height:400px}
-  canvas{width:100%; height:100%; aspect-ratio:1/1; background:#0a0f1c; border-radius:10px}
-  .side{background:var(--panel); border:1px solid #1f2937; border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:14px}
-  .section{border-top:1px solid #1f2937; padding-top:12px}
-  .section:first-child{border-top:none; padding-top:0}
-  .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-  .label{font-size:13px; color:var(--muted)}
-  input[type=range]{width:100%}
-  .btn{background:var(--brand); color:white; border:none; padding:10px 12px; border-radius:10px; font-weight:600; cursor:pointer}
-  .btn:disabled{opacity:.6; cursor:not-allowed}
-  .btn.secondary{background:#1f2937}
-  .btn.strip{background:transparent; border:1px solid #334155; color:#cbd5e1}
-  .stat{display:flex; align-items:center; justify-content:space-between; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; padding:8px 0}
-  .badge{font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid #334155; color:#cbd5e1}
-  .legend{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-  .legend div{display:flex; align-items:center; gap:8px; color:#cbd5e1; font-size:12px}
-  .swatch{width:14px; height:14px; border-radius:4px; border:1px solid #0b1220}
-  .swatch.blue{background:#3b82f6}
-  .swatch.amber{background:#f59e0b}
-  .swatch.green{background:#22c55e}
-  .swatch.red{background:#ef4444}
-  .hint{font-size:12px; color:#94a3b8}
-  .kbd{font-family:ui-monospace,monospace; font-size:12px; background:#0b1220; border:1px solid #1f2937; padding:2px 6px; border-radius:6px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fast-Safe City Navigator</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Fast‑Safe City Navigator</h1>
+    <h1>Fast-Safe City Navigator</h1>
     <span class="pill">Modified Dijkstra (distance + safety)</span>
   </header>
+
   <div class="wrap">
     <div class="board">
       <canvas id="grid" width="780" height="780"></canvas>
-      <div class="hint" style="padding:10px 6px 2px 6px;">
-        Click to set <span class="kbd">Source</span> and <span class="kbd">Destination</span>. Hold <span class="kbd">Shift</span> + Click to toggle blocks (closed roads).
+      <div class="hint">
+        Click to set <span class="kbd">Source</span> and <span class="kbd">Destination</span>. 
+        Hold <span class="kbd">Shift</span> + Click to toggle blocks.
       </div>
     </div>
+
     <aside class="side">
       <div class="section">
         <div class="row"><div class="label">Source</div><div id="srcLabel" class="badge">—</div></div>
         <div class="row"><div class="label">Destination</div><div id="dstLabel" class="badge">—</div></div>
         <div class="row" style="gap:8px">
-          <button id="btnSwap" class="btn strip" title="Swap source/destination">Swap</button>
+          <button id="btnSwap" class="btn strip">Swap</button>
           <button id="btnClearSel" class="btn strip">Clear</button>
         </div>
       </div>
@@ -89,7 +51,9 @@
         <input type="range" id="turn" min="0" max="30" step="1" value="8" />
 
         <div class="row" style="margin-top:10px">
-          <label class="label"><input type="checkbox" id="night" /> Night mode (higher risk in alleys)</label>
+          <label class="label">
+            <input type="checkbox" id="night" /> Night mode (higher risk in alleys)
+          </label>
         </div>
       </div>
 
@@ -117,284 +81,13 @@
       </div>
 
       <div class="section">
-        <div class="hint">How it works: cost for each edge = <span class="kbd">distance × (1 + α × risk)</span> + turnPenalty. All costs are non‑negative so Dijkstra remains optimal.</div>
+        <div class="hint">
+          cost = <span class="kbd">distance × (1 + α × risk)</span> + turnPenalty
+        </div>
       </div>
     </aside>
   </div>
 
-<script>
-// === Grid + Graph Settings ===
-const rows = 15, cols = 15;         // square grid
-const diagAllowed = true;           // allow diagonals
-const cellGap = 2;                  // visual gap
-const canvas = document.getElementById('grid');
-const ctx = canvas.getContext('2d');
-
-// Node id helper
-const idOf = (r,c)=> r*cols + c;
-const rcOf = (id)=> [Math.floor(id/cols), id%cols];
-
-// Layout math
-const W = canvas.width, H = canvas.height;
-const cellW = Math.floor((W - 16) / cols);
-const cellH = Math.floor((H - 16) / rows);
-const padX = Math.floor((W - cellW*cols)/2);
-const padY = Math.floor((H - cellH*rows)/2);
-
-// State
-let src = null, dst = null;
-let blocks = new Set();
-let nightMode = false;
-let alpha = 1.0;
-let turnPenalty = 8.0;
-let lastPath = [];
-let lastExpanded = 0;
-
-// UI refs
-const alphaEl = document.getElementById('alpha');
-const alphaOut = document.getElementById('alphaOut');
-const turnEl = document.getElementById('turn');
-const turnOut = document.getElementById('turnOut');
-const nightEl = document.getElementById('night');
-const statDist = document.getElementById('statDist');
-const statRisk = document.getElementById('statRisk');
-const statCost = document.getElementById('statCost');
-const statExp = document.getElementById('statExp');
-const srcLabel = document.getElementById('srcLabel');
-const dstLabel = document.getElementById('dstLabel');
-
-// Risk map: deterministic hot zones + smooth falloff
-function baseRisk(r,c){
-  // hot clusters
-  const spots = [ [4,11,0.9], [10,3,0.75], [7,7,0.85], [12,12,0.6] ];
-  let v = 0.08; // baseline
-  for(const [rr,cc,inten] of spots){
-    const d2 = (r-rr)*(r-rr) + (c-cc)*(c-cc);
-    v += inten * Math.exp(-d2/12);
-  }
-  // clamp
-  if (nightMode) v = Math.min(1, v + 0.15);
-  else v = Math.max(0, v - 0.05);
-  return Math.max(0, Math.min(1, v));
-}
-
-// Build adjacency lazily each run to capture night/blocks
-function buildAdj(){
-  const adj = new Map();
-  const dirs4 = [[1,0],[0,1],[-1,0],[0,-1]];
-  const dirs8 = [[1,1],[1,-1],[-1,1],[-1,-1]];
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      const u = idOf(r,c);
-      const list = [];
-      if (blocks.has(u)) { adj.set(u, list); continue; }
-      const consider = diagAllowed ? dirs4.concat(dirs8) : dirs4;
-      for(const [dr,dc] of consider){
-        const nr=r+dr, nc=c+dc;
-        if(nr<0||nc<0||nr>=rows||nc>=cols) continue;
-        const v = idOf(nr,nc);
-        if (blocks.has(v)) continue;
-        const dx = Math.abs(dr), dy = Math.abs(dc);
-        const dist = (dx+dy===2) ? Math.SQRT2 : 1; // 8-neigh: diag cost sqrt(2)
-        const risk = baseRisk(nr,nc); // risk of destination cell
-        // direction angle in degrees (for turn detection)
-        const dir = Math.atan2(nr-r, nc-c) * 180/Math.PI; // x swapped due to canvas coords
-        list.push({to:v, dist, risk, dir});
-      }
-      adj.set(u, list);
-    }
-  }
-  return adj;
-}
-
-// Min-heap priority queue
-class MinPQ{ constructor(){this.a=[]} size(){return this.a.length}
-  push(x){this.a.push(x); this.up(this.a.length-1)}
-  pop(){const t=this.a[0], e=this.a.pop(); if(this.a.length){this.a[0]=e; this.down(0)} return t}
-  up(i){for(;i;){let p=(i-1)>>1; if(this.a[p].key<=this.a[i].key) break; [this.a[p],this.a[i]]=[this.a[i],this.a[p]]; i=p}}
-  down(i){for(;;){let l=i*2+1,r=l+1,s=i; if(l<this.a.length&&this.a[l].key<this.a[s].key) s=l; if(r<this.a.length&&this.a[r].key<this.a[s].key) s=r; if(s===i) break; [this.a[s],this.a[i]]=[this.a[i],this.a[s]]; i=s}}
-}
-
-function edgeCost(e, alpha, addTurn){
-  return e.dist * (1 + alpha * e.risk) + (addTurn ? turnPenalty : 0);
-}
-
-function dijkstra(adj, src, dst){
-  const INF = 1e18;
-  const dist = new Array(rows*cols).fill(INF);
-  const prev = new Array(rows*cols).fill(-1);
-  const prevDir = new Array(rows*cols).fill(null);
-  const used = new Array(rows*cols).fill(false);
-
-  const pq = new MinPQ();
-  dist[src] = 0;
-  pq.push({key:0, node:src});
-  let expanded = 0;
-
-  while(pq.size()){
-    const {key:du, node:u} = pq.pop();
-    if (du!==dist[u]) continue; // stale
-    expanded++;
-    if (u===dst) break;
-
-    for(const e of adj.get(u)){
-      const last = prevDir[u];
-      const isTurn = (last!==null) ? Math.abs(e.dir - last) > 30 : false; // >30° counts as turn
-      const w = edgeCost(e, alpha, isTurn);
-      const nd = du + w;
-      if (nd < dist[e.to]){
-        dist[e.to] = nd;
-        prev[e.to] = u;
-        prevDir[e.to] = e.dir;
-        pq.push({key:nd, node:e.to});
-      }
-    }
-  }
-
-  // reconstruct
-  const path = [];
-  if (dist[dst] < INF){
-    for(let v=dst; v!==-1; v=prev[v]) path.push(v);
-    path.reverse();
-  }
-  lastExpanded = expanded;
-  return {path, cost: dist[dst], distArr: dist, prev};
-}
-
-// Measure real totals along the chosen path (for stats)
-function pathStats(path){
-  if (!path || path.length<2) return {d:0, r:0, effective:0};
-  let d=0, r=0, eff=0;
-  for (let i=0;i<path.length-1;i++){
-    const [r1,c1] = rcOf(path[i]);
-    const [r2,c2] = rcOf(path[i+1]);
-    const dx=Math.abs(r2-r1), dy=Math.abs(c2-c1);
-    const dist = (dx+dy===2) ? Math.SQRT2 : 1;
-    const risk = baseRisk(r2,c2);
-    const cost = dist * (1 + alpha * risk);
-    d += dist; r += risk; eff += cost;
-  }
-  return {d, r, effective: eff};
-}
-
-// --- Rendering ---
-function cellRect(r,c){
-  const x = padX + c*cellW; const y = padY + r*cellH;
-  return [x+cellGap, y+cellGap, cellW-2*cellGap, cellH-2*cellGap];
-}
-
-function draw(){
-  ctx.clearRect(0,0,W,H);
-
-  // heatmap (risk)
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      const risk = baseRisk(r,c);
-      const [x,y,w,h] = cellRect(r,c);
-      const red = Math.floor(255 * risk);
-      ctx.fillStyle = `rgba(${red}, 40, 40, ${0.12 + 0.28*risk})`;
-      ctx.fillRect(x,y,w,h);
-    }
-  }
-
-  // grid lines
-  ctx.strokeStyle = '#1f2937';
-  ctx.lineWidth = 1;
-  for(let r=0;r<=rows;r++){
-    const y=padY + r*cellH; ctx.beginPath(); ctx.moveTo(padX,y); ctx.lineTo(padX+cols*cellW,y); ctx.stroke();
-  }
-  for(let c=0;c<=cols;c++){
-    const x=padX + c*cellW; ctx.beginPath(); ctx.moveTo(x,padY); ctx.lineTo(x,padY+rows*cellH); ctx.stroke();
-  }
-
-  // blocks
-  for(const id of blocks){
-    const [r,c] = rcOf(id); const [x,y,w,h] = cellRect(r,c);
-    ctx.fillStyle = '#ef4444'; ctx.globalAlpha = 0.8; ctx.fillRect(x,y,w,h); ctx.globalAlpha=1;
-  }
-
-  // path
-  if (lastPath && lastPath.length){
-    ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 4; ctx.lineJoin='round'; ctx.lineCap='round';
-    ctx.beginPath();
-    const start = rcOf(lastPath[0]);
-    let [sx,sy] = cellRect(start[0], start[1]);
-    ctx.moveTo(sx+ (cellW/2), sy+ (cellH/2));
-    for(let i=1;i<lastPath.length;i++){
-      const [r,c]=rcOf(lastPath[i]); const [x,y]=cellRect(r,c);
-      ctx.lineTo(x + cellW/2, y + cellH/2);
-    }
-    ctx.stroke();
-  }
-
-  // endpoints
-  if (src!==null){
-    const [r,c]=rcOf(src); const [x,y,w,h]=cellRect(r,c);
-    ctx.fillStyle = '#3b82f6'; ctx.fillRect(x+4,y+4,w-8,h-8);
-  }
-  if (dst!==null){
-    const [r,c]=rcOf(dst); const [x,y,w,h]=cellRect(r,c);
-    ctx.fillStyle = '#f59e0b'; ctx.fillRect(x+4,y+4,w-8,h-8);
-  }
-}
-
-function setLabels(){
-  srcLabel.textContent = (src===null? '—' : src);
-  dstLabel.textContent = (dst===null? '—' : dst);
-}
-
-function run(){
-  if (src===null || dst===null) return;
-  const adj = buildAdj();
-  const {path, cost} = dijkstra(adj, src, dst);
-  lastPath = path;
-  const ps = pathStats(path);
-  statDist.textContent = ps.d.toFixed(2);
-  statRisk.textContent = ps.r.toFixed(2);
-  statCost.textContent = ps.effective.toFixed(2);
-  statExp.textContent = String(lastExpanded);
-  draw();
-}
-
-// --- Events ---
-alphaEl.addEventListener('input', e=>{ alpha = parseFloat(e.target.value); alphaOut.textContent = alpha.toFixed(1); run(); });
-turnEl.addEventListener('input', e=>{ turnPenalty = parseFloat(e.target.value); turnOut.textContent = String(turnPenalty); run(); });
-nightEl.addEventListener('change', e=>{ nightMode = e.target.checked; run(); });
-
-// canvas clicks
-canvas.addEventListener('click', (e)=>{
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left) * (canvas.width/rect.width);
-  const my = (e.clientY - rect.top) * (canvas.height/rect.height);
-  // locate cell
-  const c = Math.floor((mx - padX)/cellW); const r = Math.floor((my - padY)/cellH);
-  if (r<0||c<0||r>=rows||c>=cols) return;
-  const id = idOf(r,c);
-  if (e.shiftKey){
-    if (id===src || id===dst) return; // don't block endpoints
-    if (blocks.has(id)) blocks.delete(id); else blocks.add(id);
-    run(); draw(); return;
-  }
-  if (src===null) src = id; else if (dst===null) dst = id; else { src = id; dst = null; }
-  setLabels(); run(); draw();
-});
-
-// buttons
-const btnRun = document.getElementById('btnRun');
-const btnReset = document.getElementById('btnReset');
-const btnSwap = document.getElementById('btnSwap');
-const btnClearSel = document.getElementById('btnClearSel');
-
-btnRun.addEventListener('click', run);
-btnReset.addEventListener('click', ()=>{ blocks.clear(); src=null; dst=null; lastPath=[]; setLabels(); statDist.textContent=statRisk.textContent=statCost.textContent=statExp.textContent='—'; draw(); });
-btnSwap.addEventListener('click', ()=>{ if(src!==null && dst!==null){ const t=src; src=dst; dst=t; setLabels(); run(); }});
-btnClearSel.addEventListener('click', ()=>{ src=null; dst=null; setLabels(); run(); draw(); });
-
-// initial draw
-alphaOut.textContent = alpha.toFixed(1);
-turnOut.textContent = String(turnPenalty);
-setLabels();
-draw();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
