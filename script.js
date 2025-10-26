@@ -1,4 +1,3 @@
-<script>
 ctx.fillStyle = '#3b82f6'; ctx.fillRect(x+4,y+4,w-8,h-8);
 }
 if (dst!==null){
@@ -71,4 +70,3 @@ alphaOut.textContent = alpha.toFixed(1);
 turnOut.textContent = String(turnPenalty);
 setLabels();
 draw();
-</script>
