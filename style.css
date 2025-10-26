@@ -7,6 +7,10 @@
   --ok: #22c55e;
   --warn: #f59e0b;
   --danger: #ef4444;
+  --src:#3b82f6;   /* blue  */
+  --dst:#f59e0b;   /* amber */
+  --path:#22c55e;  /* green */
+  --block:#ef4444; /* red   */
 }
 
 body {
