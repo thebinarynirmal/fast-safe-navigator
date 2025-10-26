@@ -1,4 +1,4 @@
-ctx.fillStyle = '#3b82f6'; ctx.fillRect(x+4,y+4,w-8,h-8);
+const rows = 15, cols = 15; // square grid
 }
 if (dst!==null){
 const [r,c]=rcOf(dst); const [x,y,w,h]=cellRect(r,c);
