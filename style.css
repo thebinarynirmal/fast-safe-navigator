@@ -108,3 +108,18 @@ canvas {
   border: 1px solid #334155;
   color: #cbd5e1;
 }
+/* Legend color squares */
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Match canvas colors */
+.swatch.blue  { background: #3b82f6; }  /* Source */
+.swatch.amber { background: #f59e0b; }  /* Destination */
+.swatch.green { background: #22c55e; }  /* Path */
+.swatch.red   { background: #ef4444; }  /* Blocked */
+
